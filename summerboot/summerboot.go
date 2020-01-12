@@ -74,7 +74,7 @@ func (summerBoot *SummerBoot)staticResourceHandler(uri string, responseWriter ht
 
 func (summerBoot *SummerBoot)restApiHandler(request *http.Request, responseWriter http.ResponseWriter) {
 	uri := request.RequestURI
-	method := request.Method
+	method := strings.ToLower(request.Method)
 
 	groupHandler, err := summerBoot.findHandler(uri, method)
 	if (err != nil) {
@@ -91,7 +91,7 @@ func (summerBoot *SummerBoot)AddRoute(uri string, method string, handler func (h
 		groupHandler = make(GroupHandler)
 		summerBoot.groupHandlerList[uri] = groupHandler		
 	}
-	groupHandler[method] = handler 
+	groupHandler[strings.ToLower(method)] = handler 
 }
 
 func (summerBoot *SummerBoot)SetStaticResource(path string)  {

@@ -13,7 +13,7 @@ func httpHandler(w http.ResponseWriter, r *http.Request)  {
 
 func main()  {
 	summerBoot := summerboot.GetInstance()
-	summerBoot.AddRoute("/aa", "get", httpHandler)
+	summerBoot.AddRoute("/aa", "GET", httpHandler)
 	summerBoot.SetStaticResource("/Users/dcheng/Github/psa-be-gopher-web-framework/summer-boot/static/")
 	summerBoot.Start()
 }
