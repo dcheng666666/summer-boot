@@ -13,6 +13,28 @@ import (
 type Handler func (http.ResponseWriter, *http.Request)
 type GroupHandler map[string]Handler
 
+func matchPath(path string, pathStr string) bool {
+	pathList := strings.Split(path, "/")
+	pathStrList := strings.Split(pathStr, "/")
+	pathParamMap := make(map[string]string)
+
+	if len(pathList) != len(pathStrList) {
+		return false
+	}
+
+	for idx := 0; idx< len(pathList); idx++ {
+		if strings.HasPrefix(pathList[idx], ":") {
+			pathParamMap[pathList[idx]] = pathStrList[idx]
+		} else {
+			if pathList[idx] != pathStrList[idx] {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
 // SummerBoot definition
 type SummerBoot struct {
 	groupHandlerList map[string]GroupHandler
@@ -20,7 +42,6 @@ type SummerBoot struct {
 }
 
 var summerBoot *SummerBoot
-
 
 func GetInstance() *SummerBoot  {
 	if (summerBoot == nil) {
@@ -35,19 +56,21 @@ func (summerBoot *SummerBoot)init()  {
 }
 
 func (summerBoot *SummerBoot)findHandler(uri string, method string) (Handler, error) {
-	if groupHandler := GetInstance().groupHandlerList[uri]; groupHandler == nil {
-		return nil, errors.New(fmt.Sprintf("url %s not found", uri))
-	} else {
-		if handler := groupHandler[method]; handler == nil {
-			return nil, errors.New(fmt.Sprintf("method %s with uri %s not found", method, uri))
-		} else {
-			return handler, nil
+	for path, groupHandler := range GetInstance().groupHandlerList {
+		if match := matchPath(path, uri); match && groupHandler != nil {
+			if handler := groupHandler[method]; handler == nil {
+				return nil, errors.New(fmt.Sprintf("method %s with uri %s not found", method, uri))
+			} else {
+				return handler, nil
+			}
 		}
 	}
+
+	return nil, errors.New(fmt.Sprintf("url %s not found", uri))
 }
 
 func defaultHandler(responseWriter http.ResponseWriter, request *http.Request) {
-	uri := request.RequestURI
+	uri := request.URL.Path
 
 	if strings.HasSuffix(uri, ".html") {
 		GetInstance().staticResourceHandler(uri, responseWriter)
@@ -73,7 +96,7 @@ func (summerBoot *SummerBoot)staticResourceHandler(uri string, responseWriter ht
 }
 
 func (summerBoot *SummerBoot)restApiHandler(request *http.Request, responseWriter http.ResponseWriter) {
-	uri := request.RequestURI
+	uri := request.URL.Path
 	method := strings.ToLower(request.Method)
 
 	groupHandler, err := summerBoot.findHandler(uri, method)
