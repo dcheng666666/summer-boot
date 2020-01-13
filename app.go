@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"net/http"
 	summerboot "./summerboot"
 )
@@ -18,6 +19,8 @@ func main()  {
 	summerBoot := summerboot.GetInstance()
 	summerBoot.AddRoute("/opportunity", "GET", getOpportunity)
 	summerBoot.AddRoute("/opportunity/:id/contact/:id", "GET", getContactByOpportunity)
-	summerBoot.SetStaticResource("/Users/dcheng/Github/psa-be-gopher-web-framework/summer-boot/static/")
+
+	curDir, _ := os.Getwd()
+	summerBoot.SetStaticResource(curDir + "/static/")
 	summerBoot.Start()
 }
